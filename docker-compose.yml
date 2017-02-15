@@ -1,0 +1,36 @@
+version: "2"
+
+services:
+  api:
+    image: node:7.5-alpine
+    working_dir: /usr/src/app
+    command: [npm, run, dev]
+    depends_on:
+      - mongo
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./:/usr/src/app
+    networks:
+      backend:
+        ipv4_address: 172.18.0.2
+  mongo:
+    image: mongo
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      backend:
+        ipv4_address: 172.18.0.3
+
+networks:
+  backend:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.18.0.0/16
+          gateway: 172.18.0.1
+          
+volumes:
+  mongo-data:
+    driver: local

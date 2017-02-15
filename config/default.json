@@ -1,0 +1,8 @@
+{
+  "dbConfig": {
+    "host": "mongo",
+    "port": 27017,
+    "dbName": "central"
+  },
+  "jwtSecret": "ud9W3jO6W39fwt0x5mmA4J36v1Vy54Xd"
+}
