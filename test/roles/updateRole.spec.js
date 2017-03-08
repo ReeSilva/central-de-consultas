@@ -4,70 +4,86 @@ const Code = require('code');
 const Lab = require('lab');
 const Role = require('../../api/src/roles/model/Role');
 const mongoose = require('mongoose');
+const server = require('../../server.js');
+
 require('dotenv').config({ path: './test/.env.test' });
 
 exports.lab = Lab.script();
 const lab = exports.lab;
+const describe = lab.describe;
+const before = lab.before;
+const after = lab.after;
+const it = lab.it;
 
-lab.experiment('when I make a patch request to api/roles/fake_id', () => {
-  lab.before((done) => {
+describe('when I make a patch request to api/roles/fake_id', () => {
+  before((done) => {
     const dbUrl = `mongodb://${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_DATABASE}`;
     mongoose.Promise = global.Promise;
-    mongoose.connect(dbUrl, {}, (mongoErr) => {
-      if (mongoErr) {
-        throw mongoErr;
-      }
-
-      done();
-    });
+    mongoose.connect(dbUrl)
+    .then(
+      () => { done(); },
+      (err) => { throw err; }
+    );
   });
 
-  lab.after((done) => {
+  after((done) => {
     mongoose.connection.close();
     done();
   });
 
-  lab.beforeEach((done) => {
-    const role = new Role();
-    role.name = 'test';
-    role.allowed_scopes = [
-      ['admin+test:create'],
-      ['admin+test:read']
-    ];
-    role.save().then(() => {
-      done();
-    });
-  });
-
-  lab.afterEach((done) => {
-    Role.remove({}).then(() => {
-      done();
-    });
-  });
-
-  lab.test('Without authorization header', (done) => {
+  describe('Without authorization header', () => {
     let opt = {};
 
-    lab.before((done) => {
+    before((done) => {
+      const role = new Role();
+      role.name = 'test';
+      role.allowed_scopes = [
+        ['admin+test:create'],
+        ['admin+test:read']
+      ];
+      role.save().then(() => {
+        done();
+      });
+    });
+
+    after((done) => {
+      Role.remove({}).then(() => {
+        done();
+      });
+    });
+
+    before((done) => {
       opt = {
-        method: 'PATCH'
+        method: 'PATCH',
+        url: '/api/roles/fake_role_id'
       };
 
       done();
     });
 
-    done();
+    it('should return a 401 error', (done) => {
+      server.inject(opt, (response) => {
+        Code.expect(response.statusCode).to.equal(401);
+        done();
+      });
+    });
   });
 
-  lab.test('With an invalid JWT token', (done) => {
-    done();
+  describe('With an invalid JWT token', () => {
+    it('should return a 403 error', (done) => {
+      done();
+    });
   });
 
-  lab.test('With an user with insufficient scope', (done) => {
-    done();
+  describe('With an user with insufficient scope', () => {
+    it('should return a 403 error', (done) => {
+      done();
+    });
   });
 
-  lab.test('With valid credentials', (done) => {
-    done();
+  describe('With valid role', () => {
+    it('should return a list of roles', (done) => {
+      done();
+    });
   });
 });

@@ -40,14 +40,18 @@ server.register(require('hapi-auth-jwt'), (err) => {
   });
 });
 
-server.start((err) => {
-  if (err) {
-    throw err;
-  }
-
-  mongoose.connect(dbUrl, {}, (mongoErr) => {
-    if (mongoErr) {
-      throw mongoErr;
+if (!module.parent) {
+  server.start((err) => {
+    if (err) {
+      throw err;
     }
+
+    mongoose.connect(dbUrl, {}, (mongoErr) => {
+      if (mongoErr) {
+        throw mongoErr;
+      }
+    });
   });
-});
+}
+
+module.exports = server;
