@@ -2,9 +2,8 @@
 
 const Joi = require('joi');
 
-const createCredentialSchema = Joi.object({
-  name: Joi.string().min(2).max(30).required(),
+const updateRoleSchema = Joi.object({
   allowed_scopes: Joi.array().items(Joi.array().items(Joi.string()).min(1).max(1)).min(1).required()
 });
 
-module.exports = createCredentialSchema;
+module.exports = updateRoleSchema;

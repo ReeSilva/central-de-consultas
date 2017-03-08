@@ -3,7 +3,7 @@
 const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
-const credentialModel = new Schema({
+const roleModel = new Schema({
   name: {
     type: String,
     required: true,
@@ -15,4 +15,4 @@ const credentialModel = new Schema({
   }
 });
 
-module.exports = mongoose.model('Credential', credentialModel);
+module.exports = mongoose.model('Role', roleModel);

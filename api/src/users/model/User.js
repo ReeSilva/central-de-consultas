@@ -18,8 +18,8 @@ const userModel = new Schema({
     type: String,
     required: true
   },
-  allowed_scopes: {
-    type: [],
+  role_id: {
+    type: Schema.Types.ObjectId,
     required: true
   }
 });

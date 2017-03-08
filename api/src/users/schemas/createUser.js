@@ -12,7 +12,11 @@ const createUserSchema = Joi.object({
             .email()
             .required(),
   password: Joi.string()
-               .required()
+               .required(),
+  role_id: Joi.string()
+                    .min(2)
+                    .max(60)
+                    .required()
 });
 
 module.exports = createUserSchema;
