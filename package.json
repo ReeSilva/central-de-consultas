@@ -10,7 +10,8 @@
     "start": "NODE_ENV=production node server.js",
     "test": "NODE_ENV=test lab -v",
     "dev": "NODE_ENV=development nodemon server.js",
-    "precommit": "yarn test"
+    "lint": "eslint *.js api/** test/**",
+    "precommit": "yarn lint && yarn test"
   },
   "dependencies": {
     "bcrypt-as-promised": "^1.1.0",
