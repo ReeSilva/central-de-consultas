@@ -2,9 +2,10 @@
 
 const Code = require('code');
 const Lab = require('lab');
-const Role = require('../../api/src/roles/model/Role');
 const mongoose = require('mongoose');
+const Role = require('../../api/src/roles/model/Role');
 const server = require('../../server.js');
+const jwt = require('jsonwebtoken');
 
 require('dotenv').config({ path: './test/.env.test' });
 
@@ -35,24 +36,6 @@ describe('when I make a patch request to api/roles/fake_id', () => {
     let opt = {};
 
     before((done) => {
-      const role = new Role();
-      role.name = 'test';
-      role.allowed_scopes = [
-        ['admin+test:create'],
-        ['admin+test:read']
-      ];
-      role.save().then(() => {
-        done();
-      });
-    });
-
-    after((done) => {
-      Role.remove({}).then(() => {
-        done();
-      });
-    });
-
-    before((done) => {
       opt = {
         method: 'PATCH',
         url: '/api/roles/fake_role_id'
@@ -61,29 +44,133 @@ describe('when I make a patch request to api/roles/fake_id', () => {
       done();
     });
 
-    it('should return a 401 error', (done) => {
+    it('should return a missing authentication message', (done) => {
       server.inject(opt, (response) => {
-        Code.expect(response.statusCode).to.equal(401);
+        Code.expect(response.result.message).to.equal('Missing authentication');
         done();
       });
     });
   });
 
   describe('With an invalid JWT token', () => {
-    it('should return a 403 error', (done) => {
+    let opt = {};
+
+    before((done) => {
+      opt = {
+        method: 'PATCH',
+        headers: {
+          Authorization: 'Bearer fAkE.jWt.ToKeN'
+        },
+        url: '/api/roles/fake_role_id'
+      };
       done();
+    });
+
+    it('should return a invalid signature message error', (done) => {
+      server.inject(opt, (response) => {
+        Code.expect(response.result.message).to.equal('Invalid signature received for JSON Web Token validation');
+        done();
+      });
     });
   });
 
   describe('With an user with insufficient scope', () => {
-    it('should return a 403 error', (done) => {
+    let jwtToken;
+    let opt;
+
+    before((done) => {
+      jwtToken = jwt.sign(
+        {
+          id: 'fakeUserId',
+          username: 'fakeUsername',
+          scope: [
+            ['admin+blabla']
+          ]
+        },
+        process.env.JWT_SECRET,
+        { algorithm: 'HS256', expiresIn: '1h' }
+      );
       done();
+    });
+
+    before((done) => {
+      opt = {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${jwtToken}`
+        },
+        url: '/api/roles/fake_role_id'
+      };
+      done();
+    });
+
+    it('should return a 403 error', (done) => {
+      server.inject(opt, (response) => {
+        Code.expect(response.statusCode).to.equal(403);
+        done();
+      });
     });
   });
 
   describe('With valid role', () => {
-    it('should return a list of roles', (done) => {
+    let jwtToken;
+    let opt;
+    let roleId;
+
+    before((done) => {
+      const role = new Role();
+      role.name = 'test';
+      role.allowed_scopes = [
+        ['admin+roles:create']
+      ];
+      role.save().then((savedRole) => {
+        roleId = savedRole._id;
+        done();
+      });
+    });
+
+    before((done) => {
+      jwtToken = jwt.sign(
+        {
+          id: 'fakeUserId',
+          username: 'fakeUsername',
+          scope: [
+            ['admin+roles:update']
+          ]
+        },
+        process.env.JWT_SECRET,
+        { algorithm: 'HS256', expiresIn: '1h' }
+      );
       done();
+    });
+
+    before((done) => {
+      opt = {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${jwtToken}`
+        },
+        url: `/api/roles/${roleId}`,
+        payload: {
+          allowed_scopes: [
+            ['admin+roles:read']
+          ]
+        }
+      };
+      done();
+    });
+
+    after((done) => {
+      Role.remove({}).then(() => {
+        done();
+      });
+    });
+
+    it('should return a 204', (done) => {
+      server.inject(opt, (response) => {
+        Code.expect(response.statusCode).to.equal(204);
+        done();
+      });
     });
   });
 });

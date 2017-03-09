@@ -8,7 +8,9 @@
   "license": "MIT",
   "scripts": {
     "start": "NODE_ENV=production node server.js",
-    "dev": "NODE_ENV=development nodemon server.js"
+    "test": "NODE_ENV=test lab -v",
+    "dev": "NODE_ENV=development nodemon server.js",
+    "precommit": "yarn test"
   },
   "dependencies": {
     "bcrypt-as-promised": "^1.1.0",
@@ -33,6 +35,7 @@
     "eslint-config-google": "^0.7.1",
     "eslint-plugin-babel": "^4.0.1",
     "eslint-plugin-import": "^2.2.0",
+    "husky": "^0.13.2",
     "nodemon": "^1.11.0"
   }
 }

@@ -7,7 +7,7 @@ const Role = require('../../roles/model/Role');
 const jwt = require('jsonwebtoken');
 const co = require('co');
 
-const verifyUniqueUser = co.wrap(function* verifyUniqueUser (req, res) {
+const verifyUniqueUser = co.wrap(function* verifyUniqueUser(req, res) {
   // Find an entry from the database that
   // matches either the email or username
   const user = yield User.findOne({
@@ -33,7 +33,7 @@ const verifyUniqueUser = co.wrap(function* verifyUniqueUser (req, res) {
   return res(req.payload);
 });
 
-const verifyCredentials = co.wrap(function* verifyCredentials (req, res) {
+const verifyCredentials = co.wrap(function* verifyCredentials(req, res) {
   const password = req.payload.password;
 
   const user = yield User.findOne({
@@ -47,13 +47,12 @@ const verifyCredentials = co.wrap(function* verifyCredentials (req, res) {
     bcrypt.compare(password, user.password)
           .then(() => res(user))
           .catch(() => res(Boom.badRequest('Invalid credentials')));
-  }
-  else {
+  } else {
     return res(Boom.badRequest('Invalid credentials'));
   }
 });
 
-const createToken = co.wrap(function* createToken (user) {
+const createToken = co.wrap(function* createToken(user) {
   const token = yield Role.findOne({
     _id: user.role_id
   }).then(returnedRole =>
