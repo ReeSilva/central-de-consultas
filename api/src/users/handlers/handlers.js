@@ -71,6 +71,9 @@ users.handleGET = co.wrap(function* handler(req, res) {
 
 users.handlePATCH = co.wrap(function* handler(req, res) {
   try {
+    if (req.auth.credentials.username !== req.params.username) {
+      return res(Boom.forbidden('You can only edit your user'));
+    }
     yield User.findOneAndUpdate({ username: req.params.username },
                       { $set: req.payload })
               .catch(error => res(Boom.notFound(error)));

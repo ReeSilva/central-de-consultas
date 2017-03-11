@@ -173,6 +173,67 @@ describe('when I make a PATCH request to api/users/fake_id', () => {
     });
   });
 
+  describe('With user different than logged user', () => {
+    let jwtToken;
+    let opt;
+    let username;
+
+    before((done) => {
+      const user = new User();
+      user.username = 'test2';
+      user.email = 'test@test.com';
+      user.password = '$2a$10$Tf1vNI9B.xSZgreRlSfHt.y4toayxZVn82we9JC.O59EGwF.lTiYe';
+      user.role_id = 'fake_role_id';
+
+      user.save().then((savedUser) => {
+        username = savedUser.username;
+        done();
+      });
+    });
+
+    before((done) => {
+      jwtToken = jwt.sign(
+        {
+          id: 'fakeUserId',
+          username: 'test',
+          scope: [
+            ['admin+users:update']
+          ]
+        },
+        process.env.JWT_SECRET,
+        { algorithm: 'HS256', expiresIn: '1h' }
+      );
+      done();
+    });
+
+    before((done) => {
+      opt = {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${jwtToken}`
+        },
+        url: `/api/users/${username}`,
+        payload: {
+          email: 'test@test2.com'
+        }
+      };
+      done();
+    });
+
+    after((done) => {
+      User.remove({}).then(() => {
+        done();
+      });
+    });
+
+    it('should return a 403', (done) => {
+      server.inject(opt, (response) => {
+        Code.expect(response.statusCode).to.equal(403);
+        done();
+      });
+    });
+  });
+
   describe('With valid infos', () => {
     let jwtToken;
     let opt;
