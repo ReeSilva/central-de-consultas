@@ -84,4 +84,17 @@ users.handlePATCH = co.wrap(function* handler(req, res) {
   }
 });
 
+users.handleDELETE = co.wrap(function* handler(req, res) {
+  try {
+    if (req.auth.credentials.username !== req.params.username) {
+      return res(Boom.forbidden('You can only delete your user'));
+    }
+    yield User.remove({ username: req.params.username }).catch(updateErr => res(Boom.notFound(updateErr)));
+
+    return res().code(204);
+  } catch (e) {
+    return res(Boom.badImplementation(e));
+  }
+});
+
 module.exports = users;
