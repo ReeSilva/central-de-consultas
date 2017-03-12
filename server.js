@@ -4,12 +4,27 @@ const Hapi = require('hapi');
 const mongoose = require('mongoose');
 const glob = require('glob');
 const path = require('path');
+const winston = require('winston');
 
 if (process.env.NODE_ENV === 'test') {
   require('dotenv').config({ path: './test/.env.test' });
 } else {
   require('dotenv').config();
 }
+
+if (process.env.NODE_ENV !== 'production') {
+  winston.level = 'debug';
+}
+
+winston.configure({
+  transports: [
+    new (winston.transports.Console)({
+      colorize: true,
+      level: 'debug',
+      silent: (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'test')
+    })
+  ]
+});
 
 const server = new Hapi.Server();
 server.connection({
@@ -51,6 +66,8 @@ if (!module.parent) {
         throw mongoErr;
       }
     });
+
+    winston.debug(`Server start and running on: ${server.info.uri}`);
   });
 }
 
