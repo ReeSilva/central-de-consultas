@@ -2,7 +2,7 @@ version: "2"
 
 services:
   api:
-    image: node:7.5-alpine
+    image: node:6.10-alpine
     working_dir: /usr/src/app
     command: [npm, run, dev]
     depends_on:
